@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>SERÉA AUDITIONS</title>
+<style>
+/* =========================================================
+   SERÉA AUDITIONS
+   Single-file HTML / CSS / JavaScript game menu
+   ========================================================= */
+:root{
+  --ice:#fff8fc; --cyan:#dff7ff; --blue:#a9e8fa; --lav:#e5d5ff; --pink:#f6b8d9;
+  --silver:#f8fcff; --navy:#123653; --ink:#174766;
+  --glass:rgba(232,250,255,.12); --line:rgba(255,255,255,.42);
+  --shadow:0 24px 80px rgba(7,35,65,.28);
+  --ease:cubic-bezier(.2,.75,.2,1);
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden}
+body{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:white;background:#06182d;cursor:none;user-select:none;
+}
+button,input{font:inherit}
+button{cursor:none}
+#app{
+  position:relative;width:100%;height:100%;overflow:hidden;
+  background:
+    radial-gradient(circle at 75% 35%,rgba(190,246,255,.55),transparent 28%),
+    radial-gradient(circle at 58% 88%,rgba(177,179,255,.25),transparent 35%),
+    linear-gradient(135deg,#ffd3e7 0%,#b9e8f7 50%,#e7d8fa 100%);
+}
+#app:before,#app:after{
+  content:"";position:absolute;inset:-15%;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 25% 30%,rgba(255,255,255,.14),transparent 24%),
+    radial-gradient(ellipse at 75% 70%,rgba(188,244,255,.2),transparent 30%);
+  animation:drift 13s ease-in-out infinite alternate;
+}
+#app:after{filter:blur(18px);opacity:.65;animation-duration:18s;animation-direction:alternate-reverse}
+@keyframes drift{to{transform:translate3d(3%, -2%,0) scale(1.04)}}
+
+.screen{position:absolute;inset:0;display:none;z-index:2}
+.screen.active{display:block}
+.glow-orb{position:absolute;border-radius:50%;filter:blur(28px);opacity:.45;pointer-events:none}
+.orb1{width:35vw;height:35vw;right:7%;top:10%;background:#ffe0ef}
+.orb2{width:25vw;height:25vw;left:34%;bottom:-10%;background:#e6d6ff}
+.orb3{width:18vw;height:18vw;right:30%;top:45%;background:#8deaff;opacity:.18}
+
+.waterlines{position:absolute;inset:auto -10% -5% -10%;height:42%;opacity:.25;pointer-events:none}
+.waterlines span{
+  position:absolute;left:-5%;width:110%;height:25%;border-top:1px solid rgba(255,255,255,.65);
+  border-radius:50%;transform:rotate(-4deg);animation:wave 9s ease-in-out infinite alternate;
+}
+.waterlines span:nth-child(1){top:20%}.waterlines span:nth-child(2){top:39%;animation-delay:-2s}
+.waterlines span:nth-child(3){top:58%;animation-delay:-4s}.waterlines span:nth-child(4){top:77%;animation-delay:-6s}
+@keyframes wave{to{transform:translateX(3%) rotate(2deg) scaleX(1.04)}}
+
+.particles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.particle{position:absolute;width:3px;height:3px;border-radius:50%;background:white;box-shadow:0 0 12px 3px rgba(205,249,255,.9);opacity:.65;animation:float linear infinite}
+@keyframes float{0%{transform:translateY(105vh) translateX(0);opacity:0}15%{opacity:.7}85%{opacity:.55}100%{transform:translateY(-10vh) translateX(60px);opacity:0}}
+
+.brand{
+  position:absolute;left:clamp(22px,5vw,72px);top:clamp(24px,5vh,58px);z-index:5;
+  letter-spacing:.34em;text-transform:uppercase;
+}
+.brand h1{font-family:Georgia,serif;font-weight:400;font-size:clamp(34px,4vw,62px);margin:0;text-shadow:0 4px 24px rgba(0,0,0,.2)}
+.brand .sub{font-size:clamp(10px,1vw,13px);letter-spacing:.58em;margin-top:4px;color:#e7fbff}
+
+.menu{
+  position:absolute;left:clamp(18px,4vw,60px);top:22%;bottom:8%;width:min(420px,35vw);
+  min-width:290px;padding:30px 28px;display:flex;flex-direction:column;justify-content:center;
+  background:linear-gradient(135deg,rgba(255,255,255,.19),rgba(255,255,255,.06));
+  border:1px solid rgba(255,255,255,.28);border-radius:28px;
+  backdrop-filter:blur(24px);box-shadow:var(--shadow);z-index:4;
+}
+.eyebrow{font-size:10px;letter-spacing:.45em;color:#d8f8ff;text-transform:uppercase;margin-bottom:22px}
+.menu-title{font-family:Georgia,serif;font-size:clamp(27px,3vw,42px);font-weight:400;margin:0 0 26px}
+.menu-buttons{display:grid;gap:8px}
+.menu-btn{
+  position:relative;border:0;background:transparent;color:rgba(245,253,255,.82);text-align:left;
+  padding:15px 18px;border-radius:14px;letter-spacing:.22em;font-size:13px;font-weight:700;
+  transition:.28s var(--ease);overflow:hidden;
+}
+.menu-btn:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(220,250,255,.28),transparent);transform:translateX(-105%);transition:.35s var(--ease)}
+.menu-btn:hover,.menu-btn.selected{color:#07172c;transform:translateX(7px);background:rgba(241,253,255,.88);box-shadow:0 0 20px rgba(255,160,211,.35),0 8px 28px rgba(142,225,247,.32)}
+.menu-btn:hover:before,.menu-btn.selected:before{transform:translateX(0)}
+.menu-btn small{float:right;opacity:.55;letter-spacing:.1em}
+.confirm{margin-top:auto;padding-top:22px;border-top:1px solid rgba(255,255,255,.16);font-size:10px;letter-spacing:.35em;color:#d9f8ff}
+.confirm b{float:right;color:white}
+
+.hero{
+  position:absolute;right:3%;top:7%;bottom:5%;width:62%;z-index:1;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:40px;
+}
+.hero-card{
+  width:min(650px,72%);height:78%;position:relative;border-radius:42% 42% 30% 30%;
+  background:
+    radial-gradient(circle at 52% 26%,rgba(255,255,255,.75),transparent 7%),
+    linear-gradient(155deg,rgba(255,255,255,.3),rgba(150,226,241,.1) 50%,rgba(104,151,208,.16));
+  border:1px solid rgba(255,255,255,.34);box-shadow:0 0 90px rgba(203,249,255,.2),inset 0 0 80px rgba(255,255,255,.08);
+  backdrop-filter:blur(5px);transform:rotate(3deg);overflow:hidden;
+}
+.hero-card:before{
+  content:"";position:absolute;width:70%;height:70%;left:15%;top:8%;border-radius:50%;
+  background:radial-gradient(circle,rgba(247,253,255,.75),rgba(149,220,238,.17) 40%,transparent 68%);
+}
+.silhouette{position:absolute;left:50%;top:17%;width:42%;height:69%;transform:translateX(-50%);opacity:.8}
+.silhouette .head{width:31%;aspect-ratio:1;border-radius:50%;background:linear-gradient(145deg,#eefcff,#a6d5e6);margin:auto;box-shadow:0 0 35px rgba(255,255,255,.6)}
+.silhouette .hair{position:absolute;left:26%;top:1%;width:48%;height:34%;border-radius:50% 50% 42% 42%;background:linear-gradient(135deg,#8ca9c8,#e8f7ff);opacity:.8}
+.silhouette .body{position:absolute;top:25%;left:10%;width:80%;height:65%;border-radius:46% 46% 12% 12%;background:linear-gradient(120deg,rgba(247,254,255,.9),rgba(137,197,224,.35));clip-path:polygon(30% 0,70% 0,100% 100%,0 100%)}
+.hero-copy{position:absolute;right:6%;bottom:9%;text-align:right}
+.hero-copy .kicker{font-size:10px;letter-spacing:.5em;color:#d5f8ff}
+.hero-copy h2{font-family:Georgia,serif;font-weight:400;font-size:clamp(30px,4vw,62px);margin:8px 0 4px}
+.hero-copy p{font-size:10px;letter-spacing:.28em;color:#d5edf5;margin:0}
+
+.footer-note{position:absolute;right:5%;bottom:4%;font-size:9px;letter-spacing:.22em;color:rgba(255,255,255,.65);z-index:4}
+
+.top-actions{position:absolute;right:5%;top:5%;display:flex;gap:8px;z-index:8}
+.icon-btn{
+  width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.35);
+  background:rgba(255,255,255,.1);color:white;backdrop-filter:blur(15px);transition:.2s;
+}
+.icon-btn:hover{background:white;color:#0a2842;transform:translateY(-2px)}
+
+.panel{
+  position:absolute;inset:6% 4%;padding:clamp(20px,3vw,40px);border-radius:32px;
+  background:rgba(75,153,190,.28);border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(25px);
+  box-shadow:var(--shadow);overflow:auto;z-index:5;
+}
+.panel-head{text-align:center;margin-bottom:22px}
+.panel-head .eyebrow{margin-bottom:9px}
+.panel-head h2{font-family:Georgia,serif;font-size:clamp(28px,3vw,45px);font-weight:400;margin:0}
+.panel-head p{font-size:9px;letter-spacing:.35em;color:#cbeef7;margin:9px 0 0}
+
+.select-layout{display:grid;grid-template-columns:minmax(230px,.72fr) 1.7fr;gap:22px;align-items:start}
+.preview{
+  min-height:650px;border-radius:28px;position:relative;overflow:hidden;padding:22px 20px 18px;
+  background:linear-gradient(145deg,rgba(218,249,255,.22),rgba(124,177,210,.06));
+  border:1px solid rgba(255,255,255,.25);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+}
+.preview:before{content:"";position:absolute;inset:6% 5% 28%;border-radius:50%;background:radial-gradient(circle,rgba(220,250,255,.42),transparent 68%);filter:blur(12px)}
+.preview-avatar{
+  position:relative;width:min(88%,360px);height:410px;min-height:410px;flex:0 0 auto;border-radius:46% 46% 18% 18%;
+  background:linear-gradient(160deg,#f2fdff,#a6d9e9 60%,#738db6);box-shadow:0 0 55px rgba(181,241,255,.35);
+  display:flex;align-items:flex-end;justify-content:center;overflow:hidden;z-index:1;
+}
+.preview-avatar img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block}
+.placeholder{
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;
+  gap:9px;color:#16415c;background:
+  radial-gradient(circle at 50% 32%,rgba(255,255,255,.9),transparent 13%),
+  linear-gradient(150deg,#effcff,#b8e8f2 48%,#aeb9e2);
+}
+.placeholder .water-mark{font-size:52px;font-family:Georgia,serif;font-weight:400;opacity:.8}
+.placeholder small{font-size:8px;letter-spacing:.3em;color:#31566d}
+.info{position:relative;left:auto;right:auto;top:auto;bottom:auto;width:min(100%,390px);margin-top:14px;z-index:3;text-shadow:0 3px 18px rgba(0,0,0,.5);text-align:left}
+.info .line{width:64px;height:2px;background:linear-gradient(90deg,#fff0a8,#ffb8da);margin-bottom:10px;box-shadow:0 0 12px rgba(255,225,160,.65)}
+.info h3{font-family:Georgia,serif;font-size:clamp(36px,3.4vw,52px);font-weight:400;margin:0;color:#fff7cf;letter-spacing:.04em;text-shadow:0 4px 24px rgba(45,62,90,.55),0 0 22px rgba(255,220,160,.35)}
+.info p{font-size:12px;letter-spacing:.35em;margin:6px 0;color:#ffffff;font-weight:800;text-shadow:0 2px 12px rgba(24,60,85,.75)}
+.preview-status{font-size:10px;letter-spacing:.22em;color:#ffe9f5;margin-top:12px;text-shadow:0 0 14px rgba(255,160,207,.95);font-weight:800}
+.audition-details{margin-top:15px;display:grid;gap:10px;max-width:390px;padding:12px 14px;border-radius:15px;background:rgba(18,58,84,.3);border:1px solid rgba(255,255,255,.28);box-shadow:0 10px 30px rgba(24,64,95,.16);backdrop-filter:blur(8px)}
+.audition-detail{font-size:13px;letter-spacing:.08em;color:#fffdf7;line-height:1.5;font-weight:700}
+.audition-detail b{font-size:9px;letter-spacing:.18em;color:#bff5ff;margin-right:8px}
+.difficulty-stars{color:#ffe39b;letter-spacing:.1em;text-shadow:0 0 10px rgba(255,210,120,.85);white-space:nowrap;font-size:15px}
+.difficulty-word{font-size:11px;color:#fff1c2;letter-spacing:.12em;margin-left:6px;font-weight:900}
+.audition-song{color:#ffd5ea;font-family:Georgia,serif;font-size:16px;letter-spacing:.03em;text-shadow:0 0 12px rgba(255,143,201,.45)}
+.panel{scrollbar-width:thin;scrollbar-color:rgba(255,233,245,.8) rgba(255,255,255,.08)}
+.panel::-webkit-scrollbar{width:8px}.panel::-webkit-scrollbar-track{background:rgba(255,255,255,.06);border-radius:99px}.panel::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#fff0b5,#f6b8d9,#a9e8fa);border-radius:99px;border:2px solid rgba(255,255,255,.12)}
+.grid-wrap{min-width:0}
+.grid{display:grid;grid-template-columns:repeat(8,minmax(60px,1fr));gap:9px;}
+.group-grid{display:grid;gap:16px;min-width:0}.group-section{padding:10px 0 2px}.group-title{font-size:9px;letter-spacing:.38em;color:#f8feff;margin:0 0 8px;text-align:left;border-bottom:1px solid rgba(255,255,255,.28);padding-bottom:7px}.group-cards{display:grid;grid-template-columns:repeat(6,minmax(55px,1fr));gap:8px}.group-section:nth-child(1) .group-cards,.group-section:nth-child(2) .group-cards{grid-template-columns:repeat(5,minmax(55px,1fr))}
+
+.portrait{
+  position:relative;aspect-ratio:1/1.18;border:1px solid rgba(255,255,255,.38);border-radius:15px;
+  background:rgba(239,253,255,.1);overflow:hidden;padding:0;transition:.3s var(--ease);
+}
+.portrait:hover{transform:translateY(-7px) scale(1.045);border-color:#fff;box-shadow:0 0 0 2px rgba(255,182,217,.45),0 0 26px rgba(255,150,207,.65),0 0 46px rgba(130,224,255,.55),0 14px 34px rgba(50,100,150,.28)}
+.portrait.selected{border-color:#fff;box-shadow:0 0 0 2px rgba(195,245,255,.8),0 0 28px rgba(173,238,255,.42)}
+.portrait img,.portrait .placeholder{width:100%;height:100%;object-fit:cover}
+.portrait .placeholder .water-mark{font-size:24px}
+.portrait .label{
+  position:absolute;left:0;right:0;bottom:0;padding:12px 5px 6px;
+  background:linear-gradient(transparent,rgba(20,76,108,.88));font-size:8px;letter-spacing:.12em;color:white
+}
+.portrait .group{display:block;color:#bfeefa;font-size:6px;letter-spacing:.13em;margin-top:2px}
+.select-hint{text-align:right;font-size:8px;letter-spacing:.22em;color:#cdeff7;margin-top:10px}
+.back{
+  position:absolute;left:3%;bottom:3%;z-index:8;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);
+  color:white;border-radius:999px;padding:11px 18px;letter-spacing:.2em;font-size:9px;backdrop-filter:blur(15px)
+}
+.back:hover{background:white;color:#09233b}
+
+.settings-card,.credits-card{
+  width:min(680px,100%);margin:6vh auto 0;padding:32px;border-radius:28px;background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(24px)
+}
+.setting{display:grid;grid-template-columns:1fr auto;align-items:center;gap:20px;padding:18px 0;border-bottom:1px solid rgba(255,255,255,.12)}
+.setting:last-child{border-bottom:0}
+.setting h3{font-size:12px;letter-spacing:.22em;margin:0}.setting p{font-size:9px;color:#bfe5ee;margin:5px 0 0}
+.switch{width:54px;height:30px;border-radius:30px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);padding:3px}
+.switch span{display:block;width:22px;height:22px;border-radius:50%;background:white;transition:.25s}
+.switch.on{background:rgba(172,236,249,.55)}.switch.on span{transform:translateX(23px)}
+input[type=range]{width:220px;accent-color:#dffcff}
+.action-btn{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:white;padding:11px 16px;border-radius:12px;letter-spacing:.16em;font-size:9px}
+.action-btn:hover{background:white;color:#09233b}
+
+
+/* =========================================================
+   CHARACTER LOADING SCREEN
+   ========================================================= */
+#loadingScreen{
+  z-index:90;
+  background:
+    radial-gradient(circle at 50% 35%,rgba(255,255,255,.7),transparent 24%),
+    linear-gradient(135deg,#ffd2e6 0%,#bcecf9 52%,#e5d7fa 100%);
+}
+.loading-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}
+.loading-card{
+  width:min(680px,92vw);padding:46px 34px 40px;border:1px solid rgba(255,255,255,.75);
+  border-radius:34px;background:rgba(255,255,255,.25);backdrop-filter:blur(25px);
+  box-shadow:0 30px 90px rgba(83,80,135,.24)
+}
+.loading-sparkles{font-size:20px;letter-spacing:.55em;color:#fff;text-shadow:0 0 18px #ff9dca,0 0 18px #8de1fa}
+.loading-brand{font-family:Georgia,serif;font-size:clamp(36px,6vw,70px);letter-spacing:.13em;margin:10px 0 0;color:#fff;text-shadow:0 3px 24px rgba(255,126,192,.5)}
+.loading-name{font-size:13px;letter-spacing:.35em;margin:13px 0 7px;color:#36566f;font-weight:800}
+.loading-group{font-size:9px;letter-spacing:.42em;color:#5c7181;margin-bottom:28px}
+.loading-portrait{
+  width:110px;height:130px;margin:0 auto 26px;border-radius:24px;overflow:hidden;
+  border:2px solid rgba(255,255,255,.75);box-shadow:0 0 25px rgba(255,156,210,.5),0 0 34px rgba(125,220,247,.35)
+}
+.loading-portrait img{width:100%;height:100%;object-fit:cover}
+.loading-bar{height:8px;width:min(440px,78vw);margin:0 auto;border-radius:99px;background:rgba(255,255,255,.45);overflow:hidden}
+.loading-bar span{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#f49bc5,#8fddf5);box-shadow:0 0 18px rgba(255,255,255,.95);animation:loadBar 3.8s ease forwards}
+.loading-status{margin-top:14px;font-size:9px;letter-spacing:.28em;color:#4f687b}
+.loading-dots{display:inline-block;animation:dots 1.2s infinite}
+@keyframes loadBar{to{width:100%}}
+@keyframes dots{0%,100%{opacity:.25}50%{opacity:1}}
+
+.transition{
+  position:fixed;inset:0;z-index:100;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.98),rgba(181,238,250,.92) 30%,rgba(39,116,153,.92) 100%);
+  transform:scale(1.25);transition:opacity .38s ease,transform .62s var(--ease);
+}
+.transition.play{opacity:1;transform:scale(1)}
+.transition.out{opacity:0;transform:scale(1.5)}
+
+#cursor{
+  position:fixed;left:0;top:0;width:17px;height:17px;z-index:9999;pointer-events:none;
+  transform:translate(-50%,-50%) rotate(45deg);border-radius:55% 55% 55% 0;
+  background:linear-gradient(135deg,#fff,#ffb8da 55%,#91def5);box-shadow:0 0 16px rgba(195,248,255,.95);
+  transition:width .15s,height .15s,box-shadow .15s,filter .15s;
+}
+#cursor.hover{width:26px;height:26px;filter:saturate(1.25);background:linear-gradient(135deg,#fff,#ffb8da 52%,#8edff7);box-shadow:0 0 12px #fff,0 0 28px rgba(255,144,205,.95),0 0 38px rgba(116,224,255,.85)}
+#cursor.click{animation:cursorClick .32s ease}
+@keyframes cursorClick{50%{transform:translate(-50%,-50%) rotate(45deg) scale(.55)}}
+
+@media(max-width:1050px){
+  .menu{width:310px}.hero{width:58%}.hero-card{width:78%}
+  .select-layout{grid-template-columns:360px 1fr}.preview{min-height:650px}.preview-avatar{width:88%;height:410px}
+  .grid{grid-template-columns:repeat(8,minmax(48px,1fr));gap:6px}
+}
+@media(max-width:760px){
+  body{overflow:auto}
+  #app{min-height:100vh;height:auto;overflow:auto}
+  .screen{position:relative;min-height:100vh;height:auto;overflow:auto}
+  .brand{position:relative;left:24px;top:25px}.menu{position:relative;left:18px;top:auto;bottom:auto;width:calc(100% - 36px);min-width:0;margin-top:80px;min-height:510px}
+  .hero{display:none}.footer-note{display:none}
+  .panel{position:relative;inset:auto;margin:25px 12px 70px;min-height:calc(100vh - 50px)}
+  .select-layout{grid-template-columns:1fr}.preview{min-height:700px}.preview-avatar{width:min(86%,380px);height:420px}.grid{grid-template-columns:repeat(4,1fr);gap:7px}
+  .top-actions{top:18px;right:18px}.settings-card,.credits-card{margin-top:30px}
+  #cursor{display:none} body,button{cursor:auto}
+}
+@media(max-width:430px){
+  .grid{grid-template-columns:repeat(4,1fr)}
+  .portrait{border-radius:11px}.portrait .label{font-size:7px}
+  .preview{min-height:360px}.preview-avatar{min-height:300px;width:70%}
+}
+@media(max-width:1050px){.select-layout{grid-template-columns:1fr}.preview{min-height:280px}.preview-avatar{height:260px}.group-cards,.group-section:nth-child(1) .group-cards,.group-section:nth-child(2) .group-cards{grid-template-columns:repeat(5,minmax(55px,1fr))}}
+@media(max-width:650px){.result-breakdown{grid-template-columns:1fr 1fr 1fr}.audition-card{padding:28px 18px}.group-cards,.group-section:nth-child(1) .group-cards,.group-section:nth-child(2) .group-cards{grid-template-columns:repeat(3,1fr)}.panel{inset:3% 2%}.preview{min-height:230px}}
+/* =========================================================
+   VOCAL AUDITION + RESULTS
+   ========================================================= */
+#auditionScreen,#resultScreen{z-index:80;background:linear-gradient(135deg,rgba(255,210,230,.96),rgba(183,234,249,.96) 52%,rgba(229,215,250,.96))}
+.audition-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px}
+.audition-card{width:min(760px,94vw);padding:34px;border:1px solid rgba(255,255,255,.7);border-radius:32px;background:rgba(255,255,255,.25);backdrop-filter:blur(26px);box-shadow:0 30px 90px rgba(83,80,135,.24);text-align:center}
+.audition-kicker{font-size:10px;letter-spacing:.48em;color:#4c6a7b;font-weight:800}.audition-card h2{font-family:Georgia,serif;font-size:clamp(34px,5vw,58px);font-weight:400;margin:8px 0 3px;color:#fff;text-shadow:0 3px 18px rgba(86,70,110,.25)}
+.audition-card .song-title{font-family:Georgia,serif;font-size:clamp(22px,3vw,34px);color:#8f4d73;margin:8px 0 20px}.audition-meta{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;font-size:10px;letter-spacing:.16em;color:#49677a}.audition-meta b{color:#7a4c67}
+.audition-meter{margin:28px auto 18px;width:min(520px,88vw);height:18px;border-radius:99px;background:rgba(255,255,255,.5);overflow:hidden;border:1px solid rgba(255,255,255,.65)}.audition-meter span{display:block;width:0;height:100%;border-radius:99px;background:linear-gradient(90deg,#f6a9cc,#f9dc9b,#9fe7f6);box-shadow:0 0 20px rgba(255,255,255,.9);transition:width .1s linear}
+.audition-status{font-size:11px;letter-spacing:.2em;color:#506b7b;min-height:18px}.mic-level{margin:18px auto;width:min(330px,78vw);height:7px;border-radius:99px;background:rgba(255,255,255,.38);overflow:hidden}.mic-level span{display:block;width:0;height:100%;border-radius:99px;background:linear-gradient(90deg,#b8ecff,#ffc0df);transition:width .08s}
+.audition-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:22px}.audition-btn{border:1px solid rgba(255,255,255,.6);background:rgba(255,255,255,.35);color:#35536a;padding:13px 22px;border-radius:999px;letter-spacing:.18em;font-size:10px;font-weight:900;backdrop-filter:blur(10px)}.audition-btn.primary{background:#fff;color:#7b4b68;box-shadow:0 8px 28px rgba(255,155,201,.28)}.audition-btn:hover{transform:translateY(-2px);background:#fff}
+.result-score{font-family:Georgia,serif;font-size:clamp(72px,11vw,120px);line-height:1;color:#fff7cf;text-shadow:0 5px 30px rgba(115,77,112,.35),0 0 30px rgba(255,191,220,.55);margin:10px 0}.result-grade{font-size:18px;letter-spacing:.38em;color:#8d5573;font-weight:900}.result-copy{font-size:11px;letter-spacing:.18em;color:#536d7b;margin:12px 0 24px}.result-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px auto;max-width:540px}.result-stat{padding:14px 8px;border-radius:16px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35)}.result-stat b{display:block;font-size:22px;color:#fff}.result-stat span{font-size:8px;letter-spacing:.16em;color:#5a7180}
+
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="particles" id="particles"></div>
+  <div class="glow-orb orb1"></div><div class="glow-orb orb2"></div><div class="glow-orb orb3"></div>
+  <div class="waterlines"><span></span><span></span><span></span><span></span></div>
+  <div id="cursor"></div>
+  <div class="transition" id="transition"></div>
+
+  <!-- =====================================================
+       MAIN MENU
+       ===================================================== -->
+  <section class="screen active" id="mainMenu">
+    <div class="brand"><h1>SEREA</h1><div class="sub">AUDITIONS</div></div>
+    <div class="menu">
+      <div class="eyebrow">SEREA AUDITIONS</div>
+      <h2 class="menu-title">SEREA AUDITIONS</h2>
+      <div class="menu-buttons" id="menuButtons">
+        <button class="menu-btn selected" data-action="start">START GAME <small>↵</small></button>
+        <button class="menu-btn" data-action="characters">CHARACTERS <small>◈</small></button>
+        <button class="menu-btn" data-action="collection">COLLECTION <small>◇</small></button>
+        <button class="menu-btn" data-action="settings">SETTINGS <small>⚙</small></button>
+        <button class="menu-btn" data-action="credits">CREDITS <small>✦</small></button>
+      </div>
+      <div class="confirm">CONFIRM <b>ENTER</b></div>
+    </div>
+    <div class="hero">
+      <div class="hero-card">
+        <div class="silhouette"><div class="head"></div><div class="hair"></div><div class="body"></div></div>
+      </div>
+      <div class="hero-copy"><div class="kicker">SEREA / AUDITIONS</div><h2>SEREA AUDITIONS</h2><p>choose your member · enter the flow</p></div>
+    </div>
+    <div class="footer-note">DESKTOP EXPERIENCE · SOUND OPTIONAL · ESC TO RETURN</div>
+  </section>
+
+  <!-- =====================================================
+       CHARACTER SELECT
+       ===================================================== -->
+  <section class="screen" id="charactersScreen">
+    <div class="panel">
+      <div class="panel-head"><div class="eyebrow">SERÉA AUDITIONS / PLAYER ARCHIVE</div><h2>SELECT YOUR PLAYER</h2><p>CHOOSE YOUR CHARACTER</p></div>
+      <div class="select-layout">
+        <div class="preview" id="preview">
+          <div class="preview-avatar" id="previewAvatar"></div>
+          <div class="info"><div class="line"></div><h3 id="previewName">SAKURA</h3><p id="previewGroup">LE SSERAFIM</p><div id="previewStatus" class="preview-status">CHARACTER OPEN FOR AUDITION</div>
+            <div id="auditionDetails" class="audition-details"></div></div>
+        </div>
+        <div class="grid-wrap">
+          <div class="group-grid" id="characterGrid">
+            <div class="group-section" data-group="LE SSERAFIM"><div class="group-title">LE SSERAFIM</div><div class="group-cards"></div></div>
+            <div class="group-section" data-group="ILLIT"><div class="group-title">ILLIT</div><div class="group-cards"></div></div>
+            <div class="group-section" data-group="KATSEYE"><div class="group-title">KATSEYE</div><div class="group-cards"></div></div>
+          </div>
+          <div class="select-hint">CLICK TO VIEW · DOUBLE-CLICK TO AUDITION</div>
+        </div>
+      </div>
+    </div>
+    <button class="back" data-back="mainMenu">← BACK TO MENU</button>
+  </section>
+
+
+  <!-- =====================================================
+       CHARACTER LOADING SCREEN
+       ===================================================== -->
+  <section class="screen" id="loadingScreen">
+    <div class="loading-wrap">
+      <div class="loading-card">
+        <div class="loading-sparkles">✦ ✧ ✦</div>
+        <h1 class="loading-brand">SEREA</h1>
+        <div class="loading-name" id="loadingName">SAKURA</div>
+        <div class="loading-group" id="loadingGroup">LE SSERAFIM</div>
+        <div class="loading-portrait" id="loadingPortrait"></div>
+        <div class="loading-bar"><span id="loadingBarFill"></span></div>
+        <div class="loading-status">PREPARING YOUR AUDITION<span class="loading-dots">...</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       VOCAL AUDITION
+       ===================================================== -->
+  <section class="screen" id="auditionScreen">
+    <div class="audition-wrap">
+      <div class="audition-card">
+        <div class="audition-kicker">SERÉA / LIVE VOCAL AUDITION</div>
+        <h2 id="auditionCharacterName">SAKURA</h2>
+        <div class="song-title" id="auditionSongTitle">Perfect Night</div>
+        <div class="audition-meta"><span>POSITION: <b id="auditionPosition">LEAD VOCAL</b></span><span>DIFFICULTY: <b id="auditionDifficulty">MEDIUM</b></span></div>
+        <div class="audition-meter"><span id="auditionProgress"></span></div>
+        <div class="audition-status" id="auditionStatus">READY WHEN YOU ARE</div>
+        <div class="mic-level"><span id="micLevel"></span></div>
+        <div class="audition-actions"><button class="audition-btn primary" id="startAuditionBtn">START AUDITION</button><button class="audition-btn" id="skipAuditionBtn">SHOW RESULT</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       AUDITION RESULT
+       ===================================================== -->
+  <section class="screen" id="resultScreen">
+    <div class="audition-wrap">
+      <div class="audition-card">
+        <div class="audition-kicker">AUDITION COMPLETED</div>
+        <h2 id="resultCharacterName">SAKURA</h2>
+        <div class="result-score" id="resultScore">92</div>
+        <div class="result-grade" id="resultGrade">A</div>
+        <div class="result-copy" id="resultCopy">STRONG VOCAL CONTROL · READY FOR THE NEXT STAGE</div>
+        <div class="result-breakdown"><div class="result-stat"><b id="pitchScore">94</b><span>PITCH</span></div><div class="result-stat"><b id="controlScore">90</b><span>CONTROL</span></div><div class="result-stat"><b id="energyScore">92</b><span>ENERGY</span></div></div>
+        <div class="audition-actions"><button class="audition-btn primary" id="mainMenuFromResult">MAIN MENU</button><button class="audition-btn" id="retryAuditionBtn">AUDITION AGAIN</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =====================================================
+       SETTINGS
+       ===================================================== -->
+  <section class="screen" id="settingsScreen">
+    <div class="panel">
+      <div class="panel-head"><div class="eyebrow">SYSTEM / SERÉA AUDITIONS</div><h2>SETTINGS</h2><p>MAKE THE FLOW YOURS</p></div>
+      <div class="settings-card">
+        <div class="setting"><div><h3>MUSIC</h3><p>Background music continues between screens.</p></div><button class="switch on" id="musicToggle"><span></span></button></div>
+        <div class="setting"><div><h3>SOUND EFFECTS</h3><p>Hover, click and character selection sounds.</p></div><button class="switch on" id="sfxToggle"><span></span></button></div>
+        <div class="setting"><div><h3>MASTER VOLUME</h3><p>Controls music and sound effects.</p></div><input id="volumeSlider" type="range" min="0" max="1" step=".01" value=".65"></div>
+        <div class="setting"><div><h3>FULLSCREEN</h3><p>Use the entire display for the experience.</p></div><button class="action-btn" id="fullscreenBtn">ENTER FULLSCREEN</button></div>
+      </div>
+    </div>
+    <button class="back" data-back="mainMenu">← BACK TO MENU</button>
+  </section>
+
+  <!-- =====================================================
+       COLLECTION / CREDITS
+       ===================================================== -->
+  <section class="screen" id="collectionScreen">
+    <div class="panel"><div class="panel-head"><div class="eyebrow">SERÉA / ARCHIVE</div><h2>COLLECTION</h2><p>YOUR SERÉA AUDITIONS ARCHIVE</p></div>
+      <div class="credits-card" style="text-align:center"><div style="font-size:52px">✧</div><h3 style="font-family:Georgia,serif;font-weight:400;font-size:28px">Collection is waiting.</h3><p style="color:#c7edf5;font-size:11px;letter-spacing:.18em;line-height:1.8">PLAYABLE CONTENT WILL APPEAR HERE<br>AS YOU EXPLORE THE PUREFLOW WORLD.</p></div>
+    </div><button class="back" data-back="mainMenu">← BACK TO MENU</button>
+  </section>
+
+  <section class="screen" id="creditsScreen">
+    <div class="panel"><div class="panel-head"><div class="eyebrow">SERÉA / AUDITIONS</div><h2>CREDITS</h2><p>AN ORIGINAL FAN-MADE GAME INTERFACE</p></div>
+      <div class="credits-card">
+        <div class="setting"><div><h3>PROJECT</h3><p>SERÉA AUDITIONS</p></div><span>✦</span></div>
+        <div class="setting"><div><h3>DESIGN LANGUAGE</h3><p>Dreamy water · glass · icy blue · premium K-pop game UI</p></div><span>◌</span></div>
+        <div class="setting"><div><h3>CHARACTER IMAGES</h3><p>Character portraits are bundled with the game and mapped by member name.</p></div><span>▧</span></div>
+        <div class="setting"><div><h3>NOTE</h3><p>Character and audio files are mapped in the game data sections.</p></div><span>♡</span></div>
+      </div>
+    </div><button class="back" data-back="mainMenu">← BACK TO MENU</button>
+  </section>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   CHARACTER DATA
+   >>> REPLACE THESE IMAGE PATHS WITH YOUR OWN FILES <<<
+   Put your files beside index.html, for example:
+   characters/sakura.png
+   characters/chaewon.png
+   ...
+   Missing images automatically become a SERÉA placeholder.
+   ========================================================= */
+const CHARACTERS = [
+  // LE SSERAFIM
+  {name:"Sakura", group:"LE SSERAFIM", image:"characters/sakura.png", vocal:"Soft/Airy", position:"Lead Vocal", difficulty:"Medium", song:"Perfect Night"},
+  {name:"Chaewon", group:"LE SSERAFIM", image:"characters/chaewon.png", vocal:"Nasal/Bright", difficulty:"Hard", song:"ANTIFRAGILE", position:"Main Vocal"},
+  {name:"Yunjin", group:"LE SSERAFIM", image:"characters/yunjin.png", vocal:"Husky/Powerful", difficulty:"Hard", song:"EASY", position:"Main Vocal"},
+  {name:"Kazuha", group:"LE SSERAFIM", image:"characters/kazuha.png", vocal:"Deep/Warm", difficulty:"Hard", song:"UNFORGIVEN", position:"Vocal"},
+  {name:"Eunchae", group:"LE SSERAFIM", image:"characters/eunchae.png", vocal:"Bright/Youthful", difficulty:"Easy", song:"FEARLESS", position:"Vocal"},
+  // ILLIT
+  {name:"Minju", group:"ILLIT", image:"characters/minju.png", vocal:"Honey/Rich", difficulty:"Hard", song:"Lucky Girl Syndrome", position:"Main Vocal"},
+  {name:"Iroha", group:"ILLIT", image:"characters/iroha.png", vocal:"Light/Youthful", difficulty:"Medium", song:"Cherish (My Love)", position:"Vocal"},
+  {name:"Moka", group:"ILLIT", image:"characters/moka.png", vocal:"Airy/Soft", difficulty:"Medium", song:"My World", position:"Vocal"},
+  {name:"Wonhee", group:"ILLIT", image:"characters/wonhee.png", vocal:"Sweet/Bright", difficulty:"Easy", song:"Midnight Fiction", position:"Vocal"},
+  {name:"Yunah", group:"ILLIT", image:"characters/yunah.png", vocal:"Warm/Husky", difficulty:"Hard", song:"Magnetic", position:"Lead Vocal"},
+  // KATSEYE
+  {name:"Daniela", group:"KATSEYE", image:"characters/daniela.png", vocal:"Bright/Powerful", difficulty:"Hard", song:"Gnarly", position:"Main Vocal"},
+  {name:"Lara", group:"KATSEYE", image:"characters/lara.png", vocal:"Rich/Honey", difficulty:"Hard", song:"Gabriela", position:"Main Vocal"},
+  {name:"Manon", group:"KATSEYE", image:"characters/manon.png", vocal:"Deep/Husky", difficulty:"Hard", song:"Touch", position:"Vocal"},
+  {name:"Megan", group:"KATSEYE", image:"characters/megan.png", vocal:"Nasal/Bright", difficulty:"Medium", song:"Gnarly", position:"Vocal"},
+  {name:"Sophia", group:"KATSEYE", image:"characters/sophia.png", vocal:"Warm/Honey", difficulty:"Hard", song:"My Way", position:"Main Vocal"},
+  {name:"Yoonchae", group:"KATSEYE", image:"characters/yoonchae.png", vocal:"Sweet/Airy", difficulty:"Medium", song:"Touch", position:"Vocal"}
+];
+
+/* =========================================================
+   MUSIC
+   >>> REPLACE music/music.mp3 WITH YOUR OWN AUDIO FILE <<<
+   The browser only starts it after a user interaction.
+   ========================================================= */
+const MUSIC_FILES = {
+  mainMenu:"music/main-menu.mp3",
+  "LE SSERAFIM":"music/lesserafim.mp3",
+  "ILLIT":"music/illit.mp3",
+  "KATSEYE":"music/katseye.mp3"
+};
+
+/* =========================================================
+   SOUND EFFECTS
+   >>> OPTIONAL FILES:
+   sounds/hover.mp3
+   sounds/click.mp3
+   sounds/select.mp3
+   Missing files are safely ignored.
+   ========================================================= */
+const SOUND_FILES = {
+  hover:"sounds/hover.mp3",
+  click:"sounds/click.mp3",
+  select:"sounds/select.mp3"
+};
+
+/* =========================================================
+   CORE STATE
+   ========================================================= */
+const state = {
+  selected:0, music:true, sfx:true, volume:.65, current:"mainMenu"
+};
+const screens = [...document.querySelectorAll(".screen")];
+const transition = document.getElementById("transition");
+let music = new Audio(MUSIC_FILES.mainMenu);
+music.loop = true;
+music.preload = "auto";
+music.volume = state.volume;
+function changeMusic(src){
+  if(!src) return;
+  if(music.src.endsWith(src)){
+    music.loop = true;
+    music.volume = state.volume;
+    startMusic();
+    return;
+  }
+  const wasPlaying = !music.paused;
+  try{ music.pause(); }catch(e){}
+  music = new Audio(src);
+  music.loop = true;
+  music.preload = "auto";
+  music.volume = state.volume;
+  // Keep the selected audition track alive through loading and screen transitions.
+  music.addEventListener("ended",()=>{ if(state.music){ music.currentTime=0; music.play().catch(()=>{}); } });
+  if(wasPlaying || state.current === "loadingScreen" || state.current === "auditionScreen") startMusic();
+}
+function keepMusicAlive(){
+  if(!state.music) return;
+  music.loop = true;
+  music.volume = state.volume;
+  if(music.paused) startMusic();
+}
+const sounds = {};
+Object.entries(SOUND_FILES).forEach(([key,src])=>{
+  const a = new Audio(src);
+  a.preload = "auto";
+  sounds[key]=a;
+});
+function playSound(name){
+  if(!state.sfx || !sounds[name]) return;
+  try{ sounds[name].currentTime=0; sounds[name].volume=state.volume; sounds[name].play().catch(()=>{}); }catch(e){}
+}
+async function startMusic(){
+  if(!state.music) return;
+  try{ await music.play(); }catch(e){}
+}
+function setScreen(id){
+  screens.forEach(s=>s.classList.toggle("active",s.id===id));
+  state.current=id;
+}
+function transitionTo(id){
+  transition.classList.remove("out");
+  transition.classList.add("play");
+  playSound("click");
+  setTimeout(()=>setScreen(id),300);
+  setTimeout(()=>{transition.classList.add("out");},390);
+  setTimeout(()=>transition.classList.remove("play","out"),1000);
+}
+
+/* =========================================================
+   MAIN MENU
+   ========================================================= */
+const menuButtons=[...document.querySelectorAll(".menu-btn")];
+menuButtons.forEach((btn,i)=>{
+  btn.addEventListener("mouseenter",()=>{menuButtons.forEach(b=>b.classList.remove("selected"));btn.classList.add("selected");playSound("hover")});
+  btn.addEventListener("click",()=>{
+    startMusic();
+    const action=btn.dataset.action;
+    if(action==="start"||action==="characters") transitionTo("charactersScreen");
+    if(action==="settings") transitionTo("settingsScreen");
+    if(action==="collection") transitionTo("collectionScreen");
+    if(action==="credits") transitionTo("creditsScreen");
+  });
+});
+document.addEventListener("keydown",e=>{
+  if(state.current==="mainMenu"){
+    const active=document.querySelector(".menu-btn.selected");
+    const idx=menuButtons.indexOf(active);
+    if(e.key==="ArrowDown"){e.preventDefault();menuButtons[(idx+1)%menuButtons.length].click();return}
+    if(e.key==="ArrowUp"){e.preventDefault();menuButtons[(idx-1+menuButtons.length)%menuButtons.length].click();return}
+    if(e.key==="Enter"){active?.click()}
+  }
+  if(e.key==="Escape" && state.current!=="mainMenu"){ clearInterval(auditionTimer); stopMic(); changeMusic(MUSIC_FILES.mainMenu); transitionTo("mainMenu"); }
+});
+
+/* =========================================================
+   CHARACTER SELECT
+   ========================================================= */
+const grid=document.getElementById("characterGrid");
+const previewAvatar=document.getElementById("previewAvatar");
+const previewName=document.getElementById("previewName");
+const previewGroup=document.getElementById("previewGroup");
+const previewStatus=document.getElementById("previewStatus");
+const auditionDetails=document.getElementById("auditionDetails");
+const loadingName=document.getElementById("loadingName");
+const loadingGroup=document.getElementById("loadingGroup");
+const loadingPortrait=document.getElementById("loadingPortrait");
+const loadingBarFill=document.getElementById("loadingBarFill");
+let loadingTimer=null;
+
+
+function placeholderHTML(){
+  return `<div class="placeholder"><div class="water-mark">S</div><small>SERÉA IMAGE</small></div>`;
+}
+function imageHTML(ch, cls=""){
+  return `<img class="${cls}" src="${ch.image}" alt="${ch.name}" onerror="this.outerHTML=placeholderHTML()">`;
+}
+function renderCharacters(){
+  const sections={};
+  document.querySelectorAll(".group-section").forEach(section=>{sections[section.dataset.group]=section.querySelector(".group-cards");section.querySelector(".group-cards").innerHTML="";});
+  CHARACTERS.forEach((ch,i)=>{
+    const btn=document.createElement("button");
+    btn.className="portrait"+(i===state.selected?" selected":"");
+    btn.innerHTML=imageHTML(ch)+`<div class="label">${ch.name.toUpperCase()}<span class="group">${ch.group}</span></div>`;
+    btn.addEventListener("mouseenter",()=>playSound("hover"));
+    btn.addEventListener("click",()=>{
+      // Single-click only previews/selects the character.
+      selectCharacter(i);
+    });
+    btn.addEventListener("dblclick",()=>{
+      // Double-click confirms the audition and starts the loading screen.
+      selectCharacter(i);
+      startCharacterLoading(i);
+    });
+    sections[ch.group].appendChild(btn);
+  });
+}
+function difficultyStars(level){
+  const count={Easy:2,Medium:3,Hard:4}[level] || 3;
+  return "★".repeat(count)+"☆".repeat(5-count);
+}
+function renderAuditionDetails(ch){
+  auditionDetails.innerHTML=`
+    <div class="audition-detail"><b>POSITION</b>${ch.position || "Vocal"}</div>
+    <div class="audition-detail"><b>VOCAL STYLE</b>${ch.vocal}</div>
+    <div class="audition-detail"><b>VOCAL DIFFICULTY</b><span class="difficulty-stars">${difficultyStars(ch.difficulty)}</span><span class="difficulty-word">${ch.difficulty.toUpperCase()}</span></div>
+    <div class="audition-detail"><b>AUDITION SONG</b><span class="audition-song">${ch.song}</span></div>`;
+}
+
+function selectCharacter(i){
+  state.selected=i;
+  const ch=CHARACTERS[i];
+  document.querySelectorAll(".portrait").forEach((b,n)=>b.classList.toggle("selected",n===i));
+  previewAvatar.classList.remove("preview-in");
+  previewAvatar.style.animation="none";
+  void previewAvatar.offsetWidth;
+  previewAvatar.style.animation="previewIn .55s cubic-bezier(.2,.75,.2,1)";
+  previewAvatar.innerHTML=imageHTML(ch);
+  previewName.style.animation="none";previewGroup.style.animation="none";
+  void previewName.offsetWidth;
+  previewName.style.animation="textIn .45s ease";
+  previewGroup.style.animation="textIn .55s ease";
+  previewName.textContent=ch.name.toUpperCase();
+  previewGroup.textContent=ch.group;
+  renderAuditionDetails(ch);
+  playSound("select");
+  changeMusic(MUSIC_FILES[ch.group] || MUSIC_FILES.mainMenu);
+}
+
+function startCharacterLoading(i){
+  const ch=CHARACTERS[i];
+  if(!ch) return;
+  loadingName.textContent=ch.name.toUpperCase();
+  loadingGroup.textContent=ch.group;
+  loadingPortrait.innerHTML=imageHTML(ch);
+  loadingBarFill.style.animation="none";
+  void loadingBarFill.offsetWidth;
+  loadingBarFill.style.animation="loadBar 3.8s ease forwards";
+  setScreen("loadingScreen");
+  playSound("click");
+  clearTimeout(loadingTimer);
+  loadingTimer=setTimeout(()=>{
+    openAudition(i);
+  },4000);
+}
+
+const auditionScreen=document.getElementById("auditionScreen");
+const resultScreen=document.getElementById("resultScreen");
+const auditionCharacterName=document.getElementById("auditionCharacterName");
+const auditionSongTitle=document.getElementById("auditionSongTitle");
+const auditionPosition=document.getElementById("auditionPosition");
+const auditionDifficulty=document.getElementById("auditionDifficulty");
+const auditionProgress=document.getElementById("auditionProgress");
+const auditionStatus=document.getElementById("auditionStatus");
+const micLevel=document.getElementById("micLevel");
+const startAuditionBtn=document.getElementById("startAuditionBtn");
+const skipAuditionBtn=document.getElementById("skipAuditionBtn");
+const resultCharacterName=document.getElementById("resultCharacterName");
+const resultScore=document.getElementById("resultScore");
+const resultGrade=document.getElementById("resultGrade");
+const resultCopy=document.getElementById("resultCopy");
+const pitchScore=document.getElementById("pitchScore");
+const controlScore=document.getElementById("controlScore");
+const energyScore=document.getElementById("energyScore");
+let auditionTimer=null,auditionStart=0,micStream=null,audioContext=null,analyser=null,micData=null;
+let performanceSamples=[];
+let lastSampleTime=0;
+
+function openAudition(i){
+  const ch=CHARACTERS[i];
+  if(!ch) return;
+  state.selected=i;
+  auditionCharacterName.textContent=ch.name.toUpperCase();
+  auditionSongTitle.textContent=ch.song;
+  auditionPosition.textContent=(ch.position||"VOCAL").toUpperCase();
+  auditionDifficulty.textContent=ch.difficulty.toUpperCase();
+  auditionProgress.style.width="0%";
+  micLevel.style.width="0%";
+  auditionStatus.textContent="READY WHEN YOU ARE";
+  startAuditionBtn.disabled=false;
+  startAuditionBtn.textContent="START AUDITION";
+  setScreen("auditionScreen");
+  // Do not let the audition track fade/stop after the loading screen.
+  changeMusic(MUSIC_FILES[ch.group] || MUSIC_FILES.mainMenu);
+  keepMusicAlive();
+}
+
+async function beginMic(){
+  try{
+    micStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    audioContext=new (window.AudioContext||window.webkitAudioContext)();
+    const source=audioContext.createMediaStreamSource(micStream);
+    analyser=audioContext.createAnalyser(); analyser.fftSize=256;
+    micData=new Uint8Array(analyser.frequencyBinCount); source.connect(analyser);
+    return true;
+  }catch(e){ return false; }
+}
+function stopMic(){
+  try{micStream?.getTracks().forEach(t=>t.stop()); audioContext?.close();}catch(e){}
+  micStream=null;audioContext=null;analyser=null;micData=null;
+}
+function calculatePerformanceScore(ch){
+  // Score from the player's actual microphone performance when available.
+  // We measure activity, consistency, dynamics, and a simple pitch/voicing signal.
+  const samples=performanceSamples;
+  const active=samples.filter(x=>x.level>8);
+  const activeRatio=samples.length ? active.length/samples.length : 0;
+  const avg=samples.length ? samples.reduce((a,x)=>a+x.level,0)/samples.length : 0;
+  const variance=samples.length ? samples.reduce((a,x)=>a+Math.abs(x.level-avg),0)/samples.length : 0;
+  const consistency=Math.max(0,1-Math.min(1,variance/38));
+  const dynamic=Math.min(1,avg/55);
+  const pitchSignal=samples.length ? samples.reduce((a,x)=>a+x.pitchQuality,0)/samples.length : 0;
+  const difficultyBonus={Easy:3,Medium:0,Hard:-3}[ch.difficulty]||0;
+  let raw=58 + activeRatio*18 + consistency*10 + dynamic*8 + pitchSignal*9 + difficultyBonus;
+  if(!micStream) raw=70 + Math.random()*18; // honest fallback when browser blocks microphone access
+  return Math.max(55,Math.min(99,Math.round(raw)));
+}
+function showResult(){
+  clearInterval(auditionTimer);
+  stopMic();
+  const ch=CHARACTERS[state.selected];
+  const score=calculatePerformanceScore(ch);
+  const avgPitch=performanceSamples.length ? performanceSamples.reduce((a,x)=>a+x.pitchQuality,0)/performanceSamples.length : .7;
+  const activeRatio=performanceSamples.length ? performanceSamples.filter(x=>x.level>8).length/performanceSamples.length : .7;
+  const avgControl=performanceSamples.length ? performanceSamples.reduce((a,x)=>a+x.control,0)/performanceSamples.length : .72;
+  const pitch=Math.max(55,Math.min(99,Math.round(55+avgPitch*44)));
+  const control=Math.max(55,Math.min(99,Math.round(55+avgControl*44)));
+  const energy=Math.max(55,Math.min(99,Math.round(55+activeRatio*44)));
+  resultCharacterName.textContent=ch.name.toUpperCase();
+  resultScore.textContent=score; pitchScore.textContent=pitch; controlScore.textContent=control; energyScore.textContent=energy;
+  resultGrade.textContent=score>=95?"S":score>=88?"A":score>=78?"B":score>=68?"C":"D";
+  resultCopy.textContent=score>=88?"STRONG VOCAL CONTROL · READY FOR THE NEXT STAGE":score>=78?"SOLID PERFORMANCE · KEEP POLISHING YOUR VOCALS":score>=68?"PROMISING PERFORMANCE · KEEP PRACTICING":"KEEP PRACTICING · TRY THE AUDITION AGAIN";
+  setScreen("resultScreen");
+}
+async function runAudition(){
+  clearInterval(auditionTimer);
+  performanceSamples=[];
+  const ok=await beginMic();
+  startAuditionBtn.disabled=true;
+  startAuditionBtn.textContent="AUDITION IN PROGRESS";
+  auditionStatus.textContent=ok?"SING ALONG / PERFORM FOR 10 SECONDS":"MIC UNAVAILABLE · PERFORMING PRACTICE RUN";
+  auditionProgress.style.width="0%";
+  keepMusicAlive();
+  auditionStart=performance.now();
+  lastSampleTime=auditionStart;
+  const duration=10000;
+  auditionTimer=setInterval(()=>{
+    const now=performance.now();
+    const elapsed=now-auditionStart; const pct=Math.min(100,elapsed/duration*100);
+    auditionProgress.style.width=pct+"%";
+    let level=0,pitchQuality=.65,control=.7;
+    if(analyser&&micData){
+      analyser.getByteTimeDomainData(micData);
+      let sum=0, crossings=0, prev=micData[0]-128;
+      for(let i=0;i<micData.length;i++){
+        const v=(micData[i]-128)/128; sum+=v*v;
+        if(i>0 && ((micData[i]-128)>=0)!=(prev>=0)) crossings++;
+        prev=micData[i]-128;
+      }
+      level=Math.min(100,Math.sqrt(sum/micData.length)*260);
+      // A broad voiced range is treated as a more stable vocal signal.
+      const hz=crossings*audioContext.sampleRate/(micData.length*2);
+      pitchQuality=(hz>=100&&hz<=900&&level>8)?1-Math.min(1,Math.abs(hz-300)/500):.35;
+      control=Math.max(0,1-Math.min(1,Math.abs(level-38)/50));
+      micLevel.style.width=level+"%";
+    }else{
+      level=25+Math.random()*55;
+      pitchQuality=.45+Math.random()*.45;
+      control=.55+Math.random()*.4;
+      micLevel.style.width=level+"%";
+    }
+    performanceSamples.push({level,pitchQuality,control});
+    if(pct>=100) showResult();
+  },50);
+}
+startAuditionBtn.addEventListener("click",runAudition);
+skipAuditionBtn.addEventListener("click",showResult);
+document.getElementById("mainMenuFromResult").addEventListener("click",()=>{changeMusic(MUSIC_FILES.mainMenu);transitionTo("mainMenu")});
+document.getElementById("retryAuditionBtn").addEventListener("click",()=>openAudition(state.selected));
+
+const dynamicStyle=document.createElement("style");
+dynamicStyle.textContent="@keyframes previewIn{0%{opacity:0;transform:translateY(18px) scale(.96)}100%{opacity:1;transform:none}}@keyframes textIn{0%{opacity:0;transform:translateX(-10px)}100%{opacity:1;transform:none}}";
+document.head.appendChild(dynamicStyle);
+renderCharacters();
+selectCharacter(0);
+changeMusic(MUSIC_FILES.mainMenu);
+
+/* =========================================================
+   SETTINGS
+   ========================================================= */
+const musicToggle=document.getElementById("musicToggle");
+const sfxToggle=document.getElementById("sfxToggle");
+const volumeSlider=document.getElementById("volumeSlider");
+const fullscreenBtn=document.getElementById("fullscreenBtn");
+
+function toggleButton(btn,on){btn.classList.toggle("on",on)}
+musicToggle.onclick=()=>{
+  state.music=!state.music;toggleButton(musicToggle,state.music);
+  if(state.music) startMusic(); else music.pause();
+};
+sfxToggle.onclick=()=>{state.sfx=!state.sfx;toggleButton(sfxToggle,state.sfx)};
+volumeSlider.oninput=()=>{
+  state.volume=Number(volumeSlider.value);
+  music.volume=state.volume;
+  Object.values(sounds).forEach(a=>a.volume=state.volume);
+};
+fullscreenBtn.onclick=async()=>{
+  try{
+    if(!document.fullscreenElement){await document.documentElement.requestFullscreen();fullscreenBtn.textContent="EXIT FULLSCREEN"}
+    else{await document.exitFullscreen();fullscreenBtn.textContent="ENTER FULLSCREEN"}
+  }catch(e){}
+};
+document.querySelectorAll(".back").forEach(b=>b.addEventListener("click",()=>{ if(b.dataset.back==="mainMenu") changeMusic(MUSIC_FILES.mainMenu); transitionTo(b.dataset.back); }));
+
+/* =========================================================
+   CUSTOM CURSOR
+   ========================================================= */
+const cursor=document.getElementById("cursor");
+let mx=0,my=0,cx=0,cy=0;
+window.addEventListener("mousemove",e=>{
+  mx=e.clientX;my=e.clientY;
+  const t=e.target.closest("button,input");
+  cursor.classList.toggle("hover",!!t);
+});
+function cursorLoop(){
+  cx+=(mx-cx)*.18;cy+=(my-cy)*.18;
+  cursor.style.left=cx+"px";cursor.style.top=cy+"px";
+  requestAnimationFrame(cursorLoop);
+}
+cursorLoop();
+window.addEventListener("mousedown",()=>{cursor.classList.remove("click");void cursor.offsetWidth;cursor.classList.add("click")});
+
+/* =========================================================
+   ANIMATIONS / PARTICLES
+   ========================================================= */
+const particleBox=document.getElementById("particles");
+for(let i=0;i<32;i++){
+  const p=document.createElement("i");p.className="particle";
+  p.style.left=Math.random()*100+"%";
+  p.style.animationDuration=(7+Math.random()*12)+"s";
+  p.style.animationDelay=(-Math.random()*15)+"s";
+  p.style.transform=`scale(${.5+Math.random()*1.6})`;
+  particleBox.appendChild(p);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+Optional: add hover.mp3, click.mp3, and select.mp3. Missing files are safe.
